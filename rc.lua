@@ -8,32 +8,41 @@ require("awful.autofocus")
 
 -- Configurable stuff
 modkey = "Mod1" -- 'Round these parts, we use left alt
-terminal = "alacritty"
-launcher = "launcher_colorful" -- A rofi thingy I have
+terminal = "qterminal"
+launcher = "$HOME/.config/rofi/bin/launcher_colorful" -- A rofi thingy I have
+screenshot = "spectacle -r"
 background_dir = "$HOME/Pictures/backgrounds"
 configdir = gears.filesystem.get_configuration_dir()
 
 -- Autostarts
 awful.spawn("picom") -- Compositor
 awful.spawn("mpris-proxy") -- Proxy for headphone media control
-awful.spawn("/usr/libexec/lxqt-policykit-agent") -- LXQt policykit
+awful.spawn("lxqt-policykit-agent") -- LXQt policykit
 awful.spawn.with_shell(configdir .. "reverse_scroll.sh") -- I like MacOS scroll, ok?
 awful.spawn.with_shell(configdir .. "vulkan.sh") -- Vulkan ICD file patching
 
 -- Power menu widget
 local logout_popup = require("awesome-wm-widgets.logout-popup-widget.logout-popup")
+function logout()
+	logout_popup.launch {
+		onreboot = function() awful.spawn("systemctl reboot") end,
+		onpoweroff = function() awful.spawn("systemctl poweroff") end
+	}
+end
 
 -- Keybinds
 globalkeys = gears.table.join(
 	-- Main keys
-	awful.key({modkey, "Shift"}, "e", function() logout_popup.launch() end,
+	awful.key({modkey, "Shift"}, "e", function() logout() end,
 		{description = "Quit awesome", group = "awesome"}),
 	awful.key({modkey}, "Return", function() awful.spawn(terminal) end,
 		{description = "Open a terminal", group = "launcher"}),
-	awful.key({modkey}, "d", function() awful.spawn(launcher) end,
+	awful.key({modkey}, "d", function() awful.spawn.with_shell(launcher) end,
 		{description = "Open a launcher", group = "launcher"}),
 	awful.key({modkey, "Shift"}, "r", awesome.restart,
 		{description = "Reload awesome", group = "awesome"}),
+	awful.key({}, "Print", function() awful.spawn(screenshot) end,
+		{description = "Take a screenshot", group = "launcher"}),
 	
 	-- Media keys
 	awful.key({}, "XF86AudioRaiseVolume", function() awful.spawn("pactl set-sink-volume @DEFAULT_SINK@ +5%") end,
@@ -52,7 +61,12 @@ clientkeys = gears.table.join(
 	awful.key({modkey, "Shift"}, "q", function(c) c:kill() end,
 		{description = "Close a window", group = "client"}),
 	awful.key({modkey, "Shift"}, "space", awful.client.floating.toggle,
-		{description = "Toggle floating", group = "client"})
+		{description = "Toggle floating", group = "client"}),
+	awful.key({modkey}, "f", function(c)
+			c.fullscreen = not c.fullscreen
+			c.raise()
+		end,
+		{description = "Toggle fullscreen", group = "client"})
 )
 
 -- Stuff about tags

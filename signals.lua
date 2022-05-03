@@ -50,11 +50,11 @@ client.connect_signal("request::titlebars", function(c)
 end)
 
 client.connect_signal("property::floating", function(c)
-	if c.floating then
+	if c.floating and not c.fullscreen then
 		if c.titlebar == nil then
 			c:emit_signal("request::titlebars", "rules", {})
 		end
-	awful.titlebar.show(c)
+		awful.titlebar.show(c)
 	else
 		awful.titlebar.hide(c)
 	end
